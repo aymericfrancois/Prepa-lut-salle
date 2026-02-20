@@ -19,6 +19,13 @@ function groupLabel(groupId) {
     return g ? g.label : groupId;
 }
 
+function formatDuration(secs) {
+    const m = Math.floor(secs / 60);
+    const s = secs % 60;
+    if (s === 0) return `${m} min`;
+    return `${m}m${String(s).padStart(2, '0')}`;
+}
+
 // =============================================
 // ROUTING
 // =============================================
@@ -34,8 +41,9 @@ function init() {
             const session = JSON.parse(saved);
             AppState.sessionKey    = session.key;
             AppState.currentGroups = session.groups;
-            const defaultList = session.presetId === 'full_top'
-                ? buildFullTopList()
+            const preset = PRESETS.find(p => p.id === session.presetId);
+            const defaultList = (preset && preset.exercises)
+                ? preset.exercises
                 : getDefaultExercisesForGroups(session.groups);
             AppState.currentSession = loadExerciseList(session.key, defaultList);
             setWorkoutHeader(session.groups, session.presetId);
@@ -51,13 +59,14 @@ function init() {
         renderSelectionScreen();
     }
 
-    // Boutons workout header
+    // Workout screen buttons
     document.getElementById('reset-btn').addEventListener('click', resetSets);
     document.getElementById('leave-btn').addEventListener('click', leaveSession);
     document.getElementById('add-exercise-btn').addEventListener('click', showAddExerciseModal);
     document.getElementById('finish-btn').addEventListener('click', startPlankScreen);
+    document.getElementById('finish-no-plank-btn').addEventListener('click', finishWithoutPlank);
 
-    // Délégation événements sur la grille
+    // Workout grid event delegation
     const grid = document.getElementById('workout-grid');
     grid.addEventListener('click', e => {
         const actionEl = e.target.closest('[data-action]');
@@ -79,24 +88,42 @@ function init() {
         }
     });
 
-    // Plank buttons
+    // Plank screen — static buttons
+    document.getElementById('plank-back-btn').addEventListener('click', plankBack);
+    document.getElementById('plank-skip-btn').addEventListener('click', plankSkip);
     document.getElementById('plank-toggle-btn').addEventListener('click', togglePlank);
     document.getElementById('plank-reset-btn').addEventListener('click', resetPlankToStart);
     document.getElementById('return-home-btn').addEventListener('click', returnHome);
+    document.getElementById('plank-start-btn').addEventListener('click', startPlancheTimer);
+    document.getElementById('circuit-start-btn').addEventListener('click', startCircuitTimer);
 
-    // Fermer modal en cliquant hors
+    // Plank setup — event delegation (tabs + config buttons + circuit exercise toggle)
+    document.getElementById('plank-setup-section').addEventListener('click', e => {
+        const tab = e.target.closest('[data-plank-tab]');
+        if (tab) { switchPlankTab(tab.dataset.plankTab); return; }
+
+        const cfgBtn = e.target.closest('.plank-config-btn');
+        if (cfgBtn) { handlePlankConfigClick(cfgBtn.dataset.field, parseInt(cfgBtn.dataset.val, 10)); return; }
+
+        const exItem = e.target.closest('.circuit-ex-item');
+        if (exItem) { toggleCircuitExercise(exItem.dataset.exId); return; }
+    });
+
+    // Modal — close on backdrop click
     document.getElementById('modal-overlay').addEventListener('click', e => {
         if (e.target === document.getElementById('modal-overlay')) closeModal();
     });
 }
 
 function setWorkoutHeader(groups, presetId) {
+    const preset = PRESETS.find(p => p.id === presetId);
     const title = presetId === 'full_top'
         ? 'FULL TOP'
         : groups.map(groupLabel).join(' / ').toUpperCase();
     document.getElementById('workout-title').textContent = title;
+    const n = AppState.currentSession.length;
     document.getElementById('workout-subtitle').textContent =
-        `${AppState.currentSession.length} exercice${AppState.currentSession.length > 1 ? 's' : ''} · Focus excentrique`;
+        `${n} exercice${n > 1 ? 's' : ''} · Focus excentrique`;
 }
 
 // =============================================
@@ -136,7 +163,6 @@ function renderSelectionScreen() {
         <button class="start-btn" id="start-btn" ${isActive ? '' : 'disabled'}>DÉMARRER LA SÉANCE</button>
     `;
 
-    // Events sélection
     content.querySelectorAll('.group-btn').forEach(btn => {
         btn.addEventListener('click', () => toggleGroup(btn.dataset.group));
     });
@@ -157,9 +183,7 @@ function toggleGroup(groupId) {
     if (idx !== -1) {
         AppState.selectedGroups.splice(idx, 1);
     } else {
-        if (AppState.selectedGroups.length >= 2) {
-            AppState.selectedGroups.shift();
-        }
+        if (AppState.selectedGroups.length >= 2) AppState.selectedGroups.shift();
         AppState.selectedGroups.push(groupId);
     }
     renderSelectionScreen();
@@ -172,22 +196,13 @@ function applyPreset(presetId) {
 }
 
 function getDefaultExercisesForGroups(groups) {
-    if (groups.length === 1) {
-        return DEFAULT_SESSIONS[groups[0]] || [];
-    }
+    if (groups.length === 1) return DEFAULT_SESSIONS[groups[0]] || [];
     return groups.flatMap(g => (DEFAULT_SESSIONS[g] || []).slice(0, 3));
-}
-
-function buildFullTopList() {
-    return ['pecs','triceps','biceps','dos','epaules','trapezes']
-        .map(g => DEFAULT_SESSIONS[g][0]);
 }
 
 function loadExerciseList(sessionKey, defaultList) {
     const saved = localStorage.getItem(`wt__${sessionKey}__exercises`);
-    if (saved) {
-        try { return JSON.parse(saved); } catch(e) {}
-    }
+    if (saved) { try { return JSON.parse(saved); } catch(e) {} }
     return defaultList;
 }
 
@@ -197,8 +212,9 @@ function saveExerciseList(sessionKey, list) {
 
 function startSession(groups, presetId) {
     const key = buildSessionKey(groups);
-    const defaultList = presetId === 'full_top'
-        ? buildFullTopList()
+    const preset = PRESETS.find(p => p.id === presetId);
+    const defaultList = (preset && preset.exercises)
+        ? preset.exercises
         : getDefaultExercisesForGroups(groups);
 
     AppState.sessionKey     = key;
@@ -223,7 +239,6 @@ function renderWorkout() {
         if (!ex) return;
         grid.appendChild(buildCard(ex, index));
     });
-    // MAJ subtitle
     const subtitle = document.getElementById('workout-subtitle');
     if (subtitle) {
         const n = AppState.currentSession.length;
@@ -323,10 +338,8 @@ function adjustSetCount(exId, delta) {
     if (next === current) return;
 
     localStorage.setItem(makeKey(sessionKey, exId, 'setcount'), String(next));
-    // Supprimer la clé de la série supprimée
     if (delta < 0) localStorage.removeItem(makeKey(sessionKey, exId, `set_${current}`));
 
-    // Mise à jour ciblée du DOM (pas de re-render complet)
     const card = document.querySelector(`.card[data-ex-id="${exId}"]`);
     if (!card) return;
     card.querySelector('.set-count-display').textContent = next;
@@ -396,7 +409,7 @@ function showAddExerciseModal() {
                 <button class="btn-modal-action" data-add-ex="${ex.id}">Ajouter</button>
             </div>
         `).join('')
-        : `<p class="modal-empty">Tous les exercices de cette séance sont déjà ajoutés.</p>`;
+        : `<p class="modal-empty">Tous les exercices disponibles sont déjà dans la séance.</p>`;
 
     openModal(`
         <h2 class="modal-title">Ajouter un exercice</h2>
@@ -424,7 +437,6 @@ function showSwapModal(exId) {
     if (!ex || !ex.alternatives || ex.alternatives.length === 0) return;
 
     const alts = ex.alternatives.map(id => EXERCISES[id]).filter(Boolean);
-
     const itemsHtml = alts.map(alt => `
         <div class="modal-item">
             <div class="ex-info">
@@ -454,9 +466,8 @@ function swapExercise(fromId, toId) {
     if (idx === -1) return;
     const { sessionKey } = AppState;
     const fromEx = EXERCISES[fromId];
-
-    // Conserver le nombre de séries, réinitialiser le poids et les coches
     const setCount = getSetCount(sessionKey, fromId, fromEx?.defaultSets || 3);
+
     localStorage.setItem(makeKey(sessionKey, toId, 'setcount'), String(setCount));
     localStorage.removeItem(makeKey(sessionKey, toId, 'weight'));
     for (let i = 1; i <= setCount; i++) {
@@ -470,32 +481,213 @@ function swapExercise(fromId, toId) {
 }
 
 // =============================================
-// TIMER GAINAGE
+// ÉCRAN GAINAGE — NAVIGATION
 // =============================================
 function startPlankScreen() {
-    resetPlankState();
     showScreen('plank');
-    document.getElementById('plank-complete').style.display = 'none';
-    document.getElementById('plank-toggle-btn').style.display = 'inline-block';
-    document.getElementById('plank-reset-btn').style.display = 'inline-block';
-    document.getElementById('plank-toggle-btn').textContent = 'DÉMARRER';
-    renderPlankPhase();
+    showPlankSetup();
 }
 
-function resetPlankState() {
+function finishWithoutPlank() {
+    showScreen('plank');
+    _showPlankComplete(true);
+}
+
+function plankBack() {
     clearInterval(AppState.plankState.intervalId);
-    AppState.plankState = {
-        phase: 0, secondsLeft: PLANK_SEQUENCE[0].duration, running: false, intervalId: null
-    };
+    AppState.plankState.running = false;
+    showScreen('workout');
 }
 
-function resetPlankToStart() {
-    resetPlankState();
-    document.getElementById('plank-complete').style.display = 'none';
-    document.getElementById('plank-toggle-btn').style.display = 'inline-block';
-    document.getElementById('plank-reset-btn').style.display = 'inline-block';
-    document.getElementById('plank-toggle-btn').textContent = 'DÉMARRER';
+function plankSkip() {
+    clearInterval(AppState.plankState.intervalId);
+    AppState.plankState.running = false;
+    _showPlankComplete(false);
+}
+
+function showPlankSetup() {
+    clearInterval(AppState.plankState.intervalId);
+    AppState.plankState.running = false;
+
+    document.getElementById('plank-setup-section').style.display  = 'block';
+    document.getElementById('plank-timer-section').style.display  = 'none';
+    document.getElementById('plank-complete').style.display       = 'none';
+    document.getElementById('plank-back-btn').style.display       = '';
+    document.getElementById('plank-skip-btn').style.display       = '';
+
+    updatePlancheEstimate();
+    updateCircuitEstimate();
+    renderCircuitExercises();
+}
+
+function _showPlankComplete(hideNav) {
+    document.getElementById('plank-setup-section').style.display  = 'none';
+    document.getElementById('plank-timer-section').style.display  = 'none';
+    document.getElementById('plank-complete').style.display       = 'block';
+    if (hideNav) {
+        document.getElementById('plank-back-btn').style.display   = 'none';
+        document.getElementById('plank-skip-btn').style.display   = 'none';
+    }
+}
+
+function returnHome() {
+    localStorage.removeItem('wt__active_session');
+    clearInterval(AppState.plankState.intervalId);
+    AppState.currentSession = null;
+    AppState.currentGroups  = [];
+    AppState.sessionKey     = '';
+    AppState.selectedGroups = [];
+    AppState.plankState.running = false;
+    showScreen('selection');
+    renderSelectionScreen();
+}
+
+// =============================================
+// ÉCRAN GAINAGE — TABS & CONFIG
+// =============================================
+function switchPlankTab(tab) {
+    document.querySelectorAll('[data-plank-tab]').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.plankTab === tab);
+    });
+    document.getElementById('plank-tab-planche').style.display = tab === 'planche' ? 'block' : 'none';
+    document.getElementById('plank-tab-circuit').style.display = tab === 'circuit' ? 'block' : 'none';
+}
+
+function handlePlankConfigClick(field, val) {
+    if (field.startsWith('planche_')) {
+        const key = field.replace('planche_', '');
+        AppState.plankState.plancheConfig[key] = val;
+        updatePlancheEstimate();
+    } else if (field.startsWith('circuit_')) {
+        const key = field.replace('circuit_', '');
+        AppState.plankState.circuitConfig[key] = val;
+        updateCircuitEstimate();
+    }
+    // Sync selected state on buttons
+    const container = document.getElementById(`cfg-${field}`);
+    if (container) {
+        container.querySelectorAll('.plank-config-btn').forEach(btn => {
+            btn.classList.toggle('selected', parseInt(btn.dataset.val, 10) === val);
+        });
+    }
+}
+
+function updatePlancheEstimate() {
+    const { rounds, faceDur, sideDur } = AppState.plankState.plancheConfig;
+    const total = rounds * (faceDur + 2 * sideDur);
+    const el = document.getElementById('plank-time-estimate');
+    if (el) el.textContent = `Durée estimée : ${formatDuration(total)}`;
+}
+
+function updateCircuitEstimate() {
+    const { selectedExercises, rounds, exDuration, restDuration } = AppState.plankState.circuitConfig;
+    const el = document.getElementById('circuit-time-estimate');
+    if (!el) return;
+    const nEx = selectedExercises.length;
+    if (nEx === 0) { el.textContent = 'Sélectionne au moins un exercice'; return; }
+    const total = rounds * nEx * exDuration + (rounds * nEx - 1) * restDuration;
+    el.textContent = `Durée estimée : ~${formatDuration(total)}`;
+}
+
+function renderCircuitExercises() {
+    const container = document.getElementById('circuit-exercise-list');
+    if (!container) return;
+    const selected = AppState.plankState.circuitConfig.selectedExercises;
+    container.innerHTML = CIRCUIT_EXERCISES.map(ex => `
+        <div class="circuit-ex-item ${selected.includes(ex.id) ? 'active' : ''}" data-ex-id="${ex.id}">
+            <div class="circuit-ex-check-box">${selected.includes(ex.id) ? '✓' : ''}</div>
+            <div>
+                <div class="circuit-ex-check-name">${ex.name}</div>
+                <div class="circuit-ex-check-desc">${ex.desc}</div>
+            </div>
+        </div>
+    `).join('');
+}
+
+function toggleCircuitExercise(exId) {
+    const sel = AppState.plankState.circuitConfig.selectedExercises;
+    const idx = sel.indexOf(exId);
+    if (idx !== -1) {
+        if (sel.length <= 1) return; // minimum 1
+        sel.splice(idx, 1);
+    } else {
+        sel.push(exId);
+    }
+    renderCircuitExercises();
+    updateCircuitEstimate();
+}
+
+// =============================================
+// ÉCRAN GAINAGE — TIMERS
+// =============================================
+function buildPlancheSequence() {
+    const { rounds, faceDur, sideDur } = AppState.plankState.plancheConfig;
+    const seq = [];
+    for (let i = 0; i < rounds; i++) {
+        seq.push({ type:'planche', pos:'face',  label:'De face',     duration:faceDur,  round:i+1, totalRounds:rounds });
+        seq.push({ type:'planche', pos:'right', label:'Côté droit',  duration:sideDur,  round:i+1, totalRounds:rounds });
+        seq.push({ type:'planche', pos:'left',  label:'Côté gauche', duration:sideDur,  round:i+1, totalRounds:rounds });
+    }
+    return seq;
+}
+
+function buildCircuitSequence() {
+    const { selectedExercises, rounds, exDuration, restDuration } = AppState.plankState.circuitConfig;
+    const seq = [];
+    const total = selectedExercises.length;
+    for (let r = 0; r < rounds; r++) {
+        for (let i = 0; i < total; i++) {
+            const exId = selectedExercises[i];
+            const ex = CIRCUIT_EXERCISES.find(e => e.id === exId);
+            seq.push({ type:'exercise', name: ex?.name || exId, duration:exDuration, round:r+1, totalRounds:rounds, exIndex:i+1, totalEx:total });
+            const isLast = r === rounds - 1 && i === total - 1;
+            if (!isLast) {
+                seq.push({ type:'rest', name:'Repos', duration:restDuration, round:r+1, totalRounds:rounds, exIndex:i+1, totalEx:total });
+            }
+        }
+    }
+    return seq;
+}
+
+function startPlancheTimer() {
+    const ps = AppState.plankState;
+    ps.mode     = 'planche';
+    ps.sequence = buildPlancheSequence();
+    ps.phase    = 0;
+    ps.secondsLeft = ps.sequence[0].duration;
+    ps.running  = false;
+    clearInterval(ps.intervalId);
+
+    document.getElementById('plank-setup-section').style.display = 'none';
+    document.getElementById('plank-timer-section').style.display = 'block';
+    document.getElementById('plank-positions-row').style.display = 'flex';
+    document.getElementById('circuit-display').style.display     = 'none';
+    document.getElementById('plank-complete').style.display      = 'none';
+
     renderPlankPhase();
+    togglePlank(); // auto-start
+}
+
+function startCircuitTimer() {
+    const ps = AppState.plankState;
+    if (ps.circuitConfig.selectedExercises.length === 0) {
+        alert('Sélectionne au moins un exercice.'); return;
+    }
+    ps.mode     = 'circuit';
+    ps.sequence = buildCircuitSequence();
+    ps.phase    = 0;
+    ps.secondsLeft = ps.sequence[0].duration;
+    ps.running  = false;
+    clearInterval(ps.intervalId);
+
+    document.getElementById('plank-setup-section').style.display = 'none';
+    document.getElementById('plank-timer-section').style.display = 'block';
+    document.getElementById('plank-positions-row').style.display = 'none';
+    document.getElementById('circuit-display').style.display     = 'block';
+    document.getElementById('plank-complete').style.display      = 'none';
+
+    renderPlankPhase();
+    togglePlank(); // auto-start
 }
 
 function togglePlank() {
@@ -515,20 +707,21 @@ function tickPlank() {
     const ps = AppState.plankState;
     ps.secondsLeft--;
 
-    // Bips d'avertissement à 3, 2, 1
-    if (ps.secondsLeft > 0 && ps.secondsLeft <= 3) playBeep(440, 0.12);
+    // Warning beeps (louder than before — volume 0.8)
+    if (ps.secondsLeft > 0 && ps.secondsLeft <= 3) playBeep(440, 0.15, 0.8);
 
     if (ps.secondsLeft <= 0) {
         ps.phase++;
-        if (ps.phase >= PLANK_SEQUENCE.length) {
+        if (ps.phase >= ps.sequence.length) {
             clearInterval(ps.intervalId);
             ps.running = false;
-            playBeep(880, 0.5);
-            showPlankComplete();
+            playBeep(880, 0.5, 0.9);
+            setTimeout(() => playBeep(1100, 0.4, 0.9), 600);
+            _showPlankComplete(false);
             return;
         }
-        ps.secondsLeft = PLANK_SEQUENCE[ps.phase].duration;
-        playBeep(660, 0.3);
+        ps.secondsLeft = ps.sequence[ps.phase].duration;
+        playBeep(660, 0.35, 0.85); // transition beep
     }
 
     renderPlankPhase();
@@ -536,56 +729,54 @@ function tickPlank() {
 
 function renderPlankPhase() {
     const ps = AppState.plankState;
-    const phase = PLANK_SEQUENCE[ps.phase];
+    const phase = ps.sequence[ps.phase];
+    if (!phase) return;
     const mins = Math.floor(ps.secondsLeft / 60);
     const secs = ps.secondsLeft % 60;
 
     document.getElementById('plank-countdown').textContent =
         `${String(mins).padStart(2,'0')}:${String(secs).padStart(2,'0')}`;
 
-    // Indicateur de position
-    ['face','left','right'].forEach(pos => {
-        const el = document.getElementById('plank-pos-' + pos);
-        if (el) el.classList.toggle('active', phase.pos === pos);
-    });
-
-    // Indicateur de série (phases 0-2 = série 1, 3-5 = série 2, 6-8 = série 3)
-    const round = Math.floor(ps.phase / 3) + 1;
-    document.getElementById('plank-round').textContent = `${phase.label} · Série ${round} / 3`;
+    if (ps.mode === 'planche') {
+        ['face','left','right'].forEach(pos => {
+            const el = document.getElementById('plank-pos-' + pos);
+            if (el) el.classList.toggle('active', phase.pos === pos);
+        });
+        document.getElementById('plank-round').textContent =
+            `${phase.label} · Série ${phase.round} / ${phase.totalRounds}`;
+    } else {
+        const isRest = phase.type === 'rest';
+        const typeEl = document.getElementById('circuit-phase-type');
+        typeEl.textContent = isRest ? 'REPOS' : 'EXERCICE';
+        typeEl.className = `circuit-phase-type${isRest ? ' is-rest' : ''}`;
+        document.getElementById('circuit-ex-name').textContent = phase.name;
+        document.getElementById('plank-round').textContent = isRest
+            ? `Circuit ${phase.round} / ${phase.totalRounds} · Repos`
+            : `Circuit ${phase.round} / ${phase.totalRounds} · Exo ${phase.exIndex} / ${phase.totalEx}`;
+    }
 }
 
-function showPlankComplete() {
-    renderPlankPhase();
-    document.getElementById('plank-complete').style.display = 'block';
-    document.getElementById('plank-toggle-btn').style.display = 'none';
-    document.getElementById('plank-reset-btn').style.display = 'none';
+function resetPlankToStart() {
+    showPlankSetup();
 }
 
-function playBeep(frequency, duration) {
+// =============================================
+// AUDIO
+// =============================================
+function playBeep(frequency, duration, volume = 0.4) {
     try {
-        const ctx = new (window.AudioContext || window.webkitAudioContext)();
+        const ctx  = new (window.AudioContext || window.webkitAudioContext)();
         const osc  = ctx.createOscillator();
         const gain = ctx.createGain();
         osc.connect(gain);
         gain.connect(ctx.destination);
         osc.frequency.value = frequency;
         osc.type = 'sine';
-        gain.gain.setValueAtTime(0.4, ctx.currentTime);
+        gain.gain.setValueAtTime(volume, ctx.currentTime);
         gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + duration);
         osc.start(ctx.currentTime);
         osc.stop(ctx.currentTime + duration + 0.05);
     } catch(e) { /* AudioContext non disponible */ }
-}
-
-function returnHome() {
-    localStorage.removeItem('wt__active_session');
-    AppState.currentSession = null;
-    AppState.currentGroups  = [];
-    AppState.sessionKey     = '';
-    AppState.selectedGroups = [];
-    resetPlankState();
-    showScreen('selection');
-    renderSelectionScreen();
 }
 
 // =============================================

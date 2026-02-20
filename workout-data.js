@@ -3,16 +3,7 @@
 // =============================================
 const EXERCISE_SVG = {
     leg_press: {
-        html: `<svg width="220" height="120" viewBox="0 0 220 120">
-            <path d="M 20 20 L 40 90 L 80 90" class="machine" fill="none" />
-            <circle cx="45" cy="65" r="10" fill="#fff" opacity="0.5" />
-            <line x1="50" y1="80" x2="100" y2="70" class="bone" opacity="0.6" stroke-dasharray="4" />
-            <g class="anim-press">
-                <line x1="100" y1="30" x2="100" y2="110" class="machine" stroke-width="12" />
-                <line x1="100" y1="50" x2="100" y2="90" class="muscle-active" />
-                <path d="M 120 70 L 150 70 M 140 60 L 150 70 L 140 80" stroke="var(--primary)" stroke-width="4" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
-            </g>
-        </svg>`,
+        html: `<img src="assets/panatta-leg-press.webp" class="exercise-img" alt="Leg Press Panatta" loading="lazy">`,
         label: 'FREINAGE 3S'
     },
     leg_extension: {
@@ -178,6 +169,12 @@ const EXERCISES = {
     rowing_menton:  { id:'rowing_menton',  name:'Rowing Menton',     group:'trapezes', muscles:'Trapèzes, Épaules',      defaultSets:3, reps:'12', rest:'60s', tag:'Compound',    weightLabel:'Charge (kg)',   advice:'Prise serrée. Tire les coudes vers le haut. Barre proche du corps.',                          alternatives:['shrugs_barre'],       altNote:'Cible aussi les deltoïdes. Bonne polyvalence trapèzes/épaules.' },
     farmer_walk:    { id:'farmer_walk',    name:"Farmer's Walk",     group:'trapezes', muscles:'Trapèzes, Grip, Core',   defaultSets:3, reps:'30m', rest:'90s', tag:'Fonctionnel', weightLabel:'Haltères (kg)', advice:'Charges lourdes, buste droit, pas courts. Excellent pour le grip.',                            alternatives:['shrugs_halteres'],   altNote:"Si pas d'espace. Remplacer par shrugs haltères statiques." },
 
+    // --- MACHINES GUIDÉES (Full Top) ---
+    vertical_chest_press:  { id:'vertical_chest_press',  name:'Vertical Chest Press',   group:'pecs',     muscles:'Pectoraux, Deltoïde ant., Triceps', defaultSets:3, reps:'12', rest:'75s',  tag:'Machine',  weightLabel:'Charge (kg)',   advice:'Dos plaqué au dossier. Pousse verticalement jusqu\'à extension complète. Freine la descente.',       alternatives:['bench_barre'],          altNote:'Machine guidée Panatta Fit Evo.' },
+    lat_pulldown_circular: { id:'lat_pulldown_circular', name:'Lat Pulldown Circular',   group:'dos',      muscles:'Grand dorsal, Biceps, Rhomboïdes', defaultSets:3, reps:'12', rest:'75s',  tag:'Machine',  weightLabel:'Charge (kg)',   advice:'Tire les coudes vers le bas et les hanches dans un mouvement circulaire. Squeeze en bas.',           alternatives:['tirage_poulie_haute'],  altNote:'Machine guidée. Mouvement circulaire plus naturel que le tirage classique.' },
+    deltoid_press_circular:{ id:'deltoid_press_circular',name:'Deltoid Press Circular',  group:'epaules',  muscles:'Deltoïdes, Triceps',               defaultSets:3, reps:'12', rest:'75s',  tag:'Machine',  weightLabel:'Charge (kg)',   advice:'Coudes alignés avec les épaules au départ. Pousse en arc. Contrôle la descente.',                  alternatives:['developpe_militaire'],  altNote:'Machine guidée. Mouvement semi-circulaire, protège les épaules.' },
+    curling_machine:       { id:'curling_machine',       name:'Curling Machine',         group:'biceps',   muscles:'Biceps',                           defaultSets:3, reps:'12', rest:'60s',  tag:'Machine',  weightLabel:'Charge (kg)',   advice:'Coudes fixés sur le support. Extension complète en bas, squeeze maximal en haut. Pas d\'élan.',     alternatives:['curl_barre'],           altNote:'Isolation parfaite des biceps. Machine guidée.' },
+
     // --- ABDOS ---
     crunch_cable:   { id:'crunch_cable',   name:'Crunch Câble',       group:'abdos', muscles:'Abdominaux',          defaultSets:3, reps:'15',      rest:'45s', tag:'Compound',      weightLabel:'Charge (kg)',  advice:'Câble en hauteur avec corde. Contracte les abdos, pas le dos.',                                    alternatives:['crunch_sol'],      altNote:null },
     crunch_sol:     { id:'crunch_sol',     name:'Crunch Sol',         group:'abdos', muscles:'Abdominaux',          defaultSets:3, reps:'20',      rest:'45s', tag:'Basique',        weightLabel:'Poids corps', advice:'Mains sur les tempes. Monte les épaules, pas la tête. Expire en montant.',                        alternatives:['crunch_cable'],    altNote:'Si pas de câble. Version basique efficace.' },
@@ -187,6 +184,19 @@ const EXERCISES = {
     planche_abdo:   { id:'planche_abdo',   name:'Planche',            group:'abdos', muscles:'Gainage',             defaultSets:3, reps:'45s',     rest:'30s', tag:'Gainage',        weightLabel:'Poids corps', advice:'Corps droit des talons à la tête. Contracte ventre et fessiers.',                                alternatives:['ab_wheel'],        altNote:"Si pas d'ab wheel. Gainage statique efficace." },
     crunch_obliques:{ id:'crunch_obliques',name:'Crunch Obliques',    group:'abdos', muscles:'Obliques',            defaultSets:3, reps:'15/côté', rest:'45s', tag:'Obliques',       weightLabel:'Poids corps', advice:"Coude vers le genou opposé. Rotation du buste, pas juste du coude.",                             alternatives:['russian_twist'],   altNote:"Alternative aux Russian Twist. Plus ciblé sur l'oblique." }
 };
+
+// =============================================
+// EXERCICES CIRCUIT LIBRE (abdos/gainage)
+// =============================================
+const CIRCUIT_EXERCISES = [
+    { id:'jambes_ensemble', name:'Jambes relevées ensemble',       desc:'Jambes tendues, relevées ensemble et redescendues lentement. Dos plaqué au sol.' },
+    { id:'jambes_alt_hb',   name:'Jambes alternées haut / bas',    desc:'Une jambe monte pendant que l\'autre descend. Dos plaqué, pas de rebond.' },
+    { id:'jambes_alt_dg',   name:'Jambes alternées droite / gauche',desc:'Jambes tendues, balancier latéral contrôlé. Engager les obliques.' },
+    { id:'ab_wheel_circ',   name:'Roulette au sol',                desc:'Dos plat tout au long. Ne laisse pas les hanches tomber. Amplitude maximale.' },
+    { id:'gainage_face',    name:'Gainage face',                   desc:'Corps droit des talons à la nuque. Contracte fessiers et abdos simultanément.' },
+    { id:'gainage_cote',    name:'Gainage côté',                   desc:'Un bras, corps aligné. Empilage des pieds ou pied avant pour plus de stabilité.' },
+    { id:'crunch_circ',     name:'Crunch',                         desc:'Mains sur les tempes. Épaules décollent, tête neutre. Expire en montant.' }
+];
 
 // =============================================
 // SÉANCES PAR DÉFAUT
@@ -236,7 +246,7 @@ const PRESETS = [
     { id:'pecs_tri', label:'Pecs / Triceps',     desc:'Push day classique',                 groups:['pecs','triceps']                      },
     { id:'dos_bi',   label:'Dos / Biceps',       desc:'Pull day classique',                 groups:['dos','biceps']                        },
     { id:'ep_trap',  label:'Épaules / Trapèzes', desc:'Deltoïdes et trapèzes',              groups:['epaules','trapezes']                  },
-    { id:'full_top', label:'Full Top',           desc:'1 exo par groupe musculaire',        groups:['pecs','triceps','biceps','dos','epaules','trapezes'] }
+    { id:'full_top', label:'Full Top',           desc:'5 machines guidées Panatta',         groups:['pecs','dos','epaules','biceps','triceps'], exercises:['vertical_chest_press','lat_pulldown_circular','deltoid_press_circular','curling_machine','pushdown_cable'] }
 ];
 
 // =============================================
@@ -248,6 +258,16 @@ const AppState = {
     sessionKey:     '',
     selectedGroups: [],
     plankState: {
-        phase: 0, secondsLeft: 0, running: false, intervalId: null
+        mode:       'planche',  // 'planche' | 'circuit'
+        sequence:   [],         // built dynamically at start
+        phase:      0,
+        secondsLeft:0,
+        running:    false,
+        intervalId: null,
+        plancheConfig: { rounds: 3, faceDur: 60, sideDur: 30 },
+        circuitConfig: {
+            selectedExercises: ['jambes_ensemble','jambes_alt_hb','ab_wheel_circ','gainage_face','crunch_circ'],
+            rounds: 3, exDuration: 40, restDuration: 20
+        }
     }
 };
