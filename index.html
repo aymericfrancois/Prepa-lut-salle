@@ -16,32 +16,25 @@
             --text-main: #f0f0f0;
             --text-muted: #888888;
             --border-color: #222222;
+            --success: #2e7d32;
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; }
 
         body {
-            background-color: var(--bg-color);
-            color: var(--text-main);
-            font-family: 'DM Sans', sans-serif;
-            line-height: 1.5;
-            padding: 20px;
-            padding-bottom: 60px;
+            background-color: var(--bg-color); color: var(--text-main);
+            font-family: 'DM Sans', sans-serif; line-height: 1.5;
+            padding: 20px; padding-bottom: 80px;
         }
 
         .container { max-width: 900px; margin: 0 auto; }
 
-        h1, h2, .bebas {
-            font-family: 'Bebas Neue', sans-serif;
-            letter-spacing: 1px;
-            font-weight: 400;
-        }
+        h1, h2, .bebas { font-family: 'Bebas Neue', sans-serif; letter-spacing: 1px; font-weight: 400; }
 
         /* Header */
         header {
             display: flex; justify-content: space-between; align-items: flex-end;
-            border-bottom: 2px solid var(--border-color);
-            padding-bottom: 20px; margin-bottom: 30px; flex-wrap: wrap; gap: 15px;
+            border-bottom: 2px solid var(--border-color); padding-bottom: 20px; margin-bottom: 30px; flex-wrap: wrap; gap: 15px;
         }
         .header-content h1 { font-size: 3.5rem; color: var(--text-main); line-height: 1; margin-bottom: 5px; }
         .header-content p { color: var(--text-muted); font-weight: 500; text-transform: uppercase; font-size: 0.85rem; letter-spacing: 0.5px; }
@@ -58,11 +51,10 @@
         .grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; }
         .card {
             background-color: var(--card-bg); border: 1px solid var(--border-color); border-radius: 8px;
-            overflow: hidden; display: flex; flex-direction: column; cursor: pointer;
-            transition: border-color 0.2s;
+            overflow: hidden; display: flex; flex-direction: column; transition: all 0.3s ease;
         }
-        .card:active { border-color: var(--primary); }
-        .card.done { opacity: 0.3; filter: grayscale(100%); }
+        .card.done { opacity: 0.4; border-color: #000; }
+        .card.done .anim-box { filter: grayscale(100%); opacity: 0.3; }
         .card.full-width { grid-column: 1 / -1; }
 
         .card-header {
@@ -76,6 +68,7 @@
         .anim-box {
             height: 160px; background-color: #080808; display: flex; justify-content: center; align-items: center;
             border-bottom: 1px solid var(--border-color); position: relative; overflow: hidden;
+            transition: all 0.3s ease;
         }
         .anim-label {
             position: absolute; bottom: 10px; right: 15px; font-family: 'Bebas Neue', sans-serif;
@@ -86,47 +79,75 @@
         .card-title { font-size: 2rem; margin-bottom: 2px; color: var(--text-main); }
         .card-muscles { color: var(--primary); font-size: 0.85rem; font-weight: 700; text-transform: uppercase; margin-bottom: 15px; }
         
-        .pills { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 15px; }
+        .pills { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 20px; }
         .pill { border: 1px solid #333; background-color: #000; color: #ddd; font-size: 0.8rem; padding: 4px 10px; border-radius: 20px; font-weight: 500; }
         .pill.rest { border-color: var(--primary); color: var(--primary); }
+
+        /* Interactive Tracker Area */
+        .tracker-area {
+            display: flex; flex-wrap: wrap; gap: 15px; justify-content: space-between; align-items: flex-end;
+            background-color: #0a0a0a; padding: 15px; border-radius: 6px; margin-bottom: 15px; border: 1px solid #1a1a1a;
+        }
+        
+        .weight-input-group { display: flex; flex-direction: column; gap: 5px; }
+        .weight-input-group label { font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; }
+        .weight-input-group input {
+            background-color: #000; border: 1px solid #333; color: var(--primary);
+            font-family: 'Bebas Neue', sans-serif; font-size: 1.5rem; padding: 5px 10px;
+            width: 80px; border-radius: 4px; text-align: center;
+        }
+        .weight-input-group input:focus { outline: none; border-color: var(--primary); }
+
+        .sets-group { display: flex; flex-direction: column; gap: 5px; }
+        .sets-group label { font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; }
+        .set-boxes { display: flex; gap: 8px; }
+        .set-box {
+            width: 35px; height: 35px; border: 2px solid #333; border-radius: 6px;
+            display: flex; justify-content: center; align-items: center; cursor: pointer;
+            background-color: #000; transition: all 0.2s;
+        }
+        .set-box svg { width: 20px; height: 20px; stroke: var(--bg-color); opacity: 0; transition: opacity 0.2s; }
+        .set-box.checked { background-color: var(--primary); border-color: var(--primary); }
+        .set-box.checked svg { opacity: 1; }
         
         .card-advice { font-size: 0.9rem; color: var(--text-muted); border-left: 3px solid var(--primary); padding-left: 10px; margin-top: auto; }
 
+        /* Reset Button */
+        .reset-btn {
+            display: block; width: 100%; max-width: 300px; margin: 40px auto 0;
+            background: transparent; border: 1px solid #333; color: var(--text-muted);
+            padding: 12px 20px; font-family: 'Bebas Neue', sans-serif; font-size: 1.2rem; letter-spacing: 1px;
+            border-radius: 6px; cursor: pointer; transition: all 0.2s;
+        }
+        .reset-btn:hover, .reset-btn:active { border-color: var(--text-main); color: var(--text-main); }
+
         @media (max-width: 768px) { .grid { grid-template-columns: 1fr; } .header-content h1 { font-size: 2.8rem; } }
 
-        /* =========================================
-           SVG STYLING & BIOMECHANICS
-           ========================================= */
+        /* SVG & BIOMECHANICS */
         .joint { fill: #fff; }
         .bone { stroke: #fff; stroke-width: 8; stroke-linecap: round; }
         .muscle-active { stroke: var(--primary); stroke-width: 12; stroke-linecap: round; opacity: 0.8; }
         .machine { stroke: #333; stroke-width: 10; stroke-linecap: round; }
         .machine-pad { fill: #444; rx: 5; }
 
-        /* ANIMATIONS
-           Format: 4s total. 
-           0-10% (0.4s): Push (Concentric)
-           10-20% (0.4s): Hold
-           20-95% (3.0s): Resist (Eccentric - The focus!)
-           95-100%: Hold bottom 
-        */
-        @keyframes legPressMove {
-            0% { transform: translate(30px, -30px); } /* Bottom */
-            15% { transform: translate(-20px, 20px); } /* Pushed */
-            25% { transform: translate(-20px, 20px); } /* Hold */
-            100% { transform: translate(30px, -30px); } /* Slow return */
+        /* ANIMATIONS (1s Poussée / 3s Freinage) */
+        @keyframes legPressHorizontal {
+            0% { transform: translateX(0); } /* Bottom/Bent */
+            15% { transform: translateX(45px); } /* Pushed out */
+            25% { transform: translateX(45px); } /* Hold */
+            100% { transform: translateX(0); } /* Slow return 3s */
         }
         @keyframes legExtMove {
-            0% { transform: rotate(0deg); } /* Bottom */
-            15% { transform: rotate(-75deg); } /* Kicked up */
-            25% { transform: rotate(-75deg); } /* Hold */
-            100% { transform: rotate(0deg); } /* Slow lower */
+            0% { transform: rotate(0deg); }
+            15% { transform: rotate(-75deg); }
+            25% { transform: rotate(-75deg); }
+            100% { transform: rotate(0deg); }
         }
         @keyframes splitSquatMove {
-            0% { transform: translateY(30px); } /* Down */
-            15% { transform: translateY(0px); } /* Up */
-            25% { transform: translateY(0px); } /* Hold */
-            100% { transform: translateY(30px); } /* Slow down */
+            0% { transform: translateY(30px); }
+            15% { transform: translateY(0px); }
+            25% { transform: translateY(0px); }
+            100% { transform: translateY(30px); }
         }
         @keyframes lungeMove {
             0% { transform: translateY(30px); }
@@ -135,25 +156,25 @@
             100% { transform: translateY(30px); }
         }
         @keyframes stepUpMove {
-            0% { transform: translateY(0px); } /* On box */
-            70% { transform: translateY(40px); } /* Slow down to floor */
-            85% { transform: translateY(40px); } /* Touch */
-            100% { transform: translateY(0px); } /* Step up fast */
+            0% { transform: translateY(0px); }
+            70% { transform: translateY(40px); }
+            85% { transform: translateY(40px); }
+            100% { transform: translateY(0px); }
         }
         @keyframes legCurlMove {
-            0% { transform: rotate(0deg); } /* Extended */
-            15% { transform: rotate(90deg); } /* Curled */
-            25% { transform: rotate(90deg); } /* Hold */
-            100% { transform: rotate(0deg); } /* Slow release */
+            0% { transform: rotate(0deg); }
+            15% { transform: rotate(90deg); }
+            25% { transform: rotate(90deg); }
+            100% { transform: rotate(0deg); }
         }
         @keyframes calfMove {
-            0% { transform: translateY(15px); } /* Stretched down */
-            15% { transform: translateY(-15px); } /* Contracted up */
-            35% { transform: translateY(-15px); } /* 1s Hold up */
-            100% { transform: translateY(15px); } /* Slow stretch down */
+            0% { transform: translateY(15px); }
+            15% { transform: translateY(-15px); }
+            35% { transform: translateY(-15px); }
+            100% { transform: translateY(15px); }
         }
 
-        .anim-press { animation: legPressMove 4s infinite linear; }
+        .anim-press { animation: legPressHorizontal 4s infinite linear; }
         .anim-ext { animation: legExtMove 4s infinite linear; transform-origin: 150px 70px; }
         .anim-squat { animation: splitSquatMove 4s infinite linear; }
         .anim-lunge { animation: lungeMove 4s infinite linear; }
@@ -185,30 +206,46 @@
 
         <div class="grid">
             
-            <div class="card" onclick="this.classList.toggle('done')">
+            <div class="card" id="card-press">
                 <div class="card-header"><span class="card-number">01</span><span class="card-tag">Priorité Absolue</span></div>
                 <div class="anim-box">
-                    <svg width="200" height="120" viewBox="0 0 200 120">
-                        <line x1="20" y1="100" x2="80" y2="40" class="machine" />
+                    <svg width="220" height="120" viewBox="0 0 220 120">
+                        <path d="M 20 20 L 40 90 L 80 90" class="machine" fill="none" />
+                        <circle cx="45" cy="65" r="10" fill="#fff" opacity="0.5" /> <line x1="50" y1="80" x2="100" y2="70" class="bone" opacity="0.6" stroke-dasharray="4" />
                         <g class="anim-press">
-                            <line x1="120" y1="20" x2="80" y2="60" class="machine" stroke-width="6"/>
-                            <rect x="75" y="45" width="10" height="40" class="machine-pad" transform="rotate(45 80 65)" />
-                            <line x1="50" y1="80" x2="110" y2="80" class="muscle-active" />
-                            <line x1="50" y1="80" x2="110" y2="80" class="bone" />
-                            <line x1="110" y1="80" x2="90" y2="50" class="bone" />
-                            <circle cx="50" cy="80" r="6" class="joint" /> <circle cx="110" cy="80" r="6" class="joint" /> <circle cx="90" cy="50" r="5" class="joint" /> </g>
+                            <line x1="100" y1="30" x2="100" y2="110" class="machine" stroke-width="12" />
+                            <line x1="100" y1="50" x2="100" y2="90" class="muscle-active" />
+                            <path d="M 120 70 L 150 70 M 140 60 L 150 70 L 140 80" stroke="var(--primary)" stroke-width="4" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+                        </g>
                     </svg>
                     <div class="anim-label">FREINAGE 3S</div>
                 </div>
                 <div class="card-body">
                     <h2 class="card-title bebas">Leg Press</h2>
                     <div class="card-muscles">Quadriceps, Fessiers</div>
-                    <div class="pills"><span class="pill">4x10</span><span class="pill">Charge Mod-Élevée</span><span class="pill rest">Repos: 60-75s</span></div>
-                    <div class="card-advice">Retour plateforme freiné. Focus total sur le vaste externe pour encaisser les chocs.</div>
+                    <div class="pills"><span class="pill">4x10</span><span class="pill rest">Repos: 60-75s</span></div>
+                    
+                    <div class="tracker-area">
+                        <div class="weight-input-group">
+                            <label>Charge (kg)</label>
+                            <input type="number" id="w-press" class="weight-in" placeholder="Ex: 80">
+                        </div>
+                        <div class="sets-group">
+                            <label>Séries validées</label>
+                            <div class="set-boxes">
+                                <div class="set-box" id="s-press-1"><svg viewBox="0 0 24 24" fill="none" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg></div>
+                                <div class="set-box" id="s-press-2"><svg viewBox="0 0 24 24" fill="none" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg></div>
+                                <div class="set-box" id="s-press-3"><svg viewBox="0 0 24 24" fill="none" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg></div>
+                                <div class="set-box" id="s-press-4"><svg viewBox="0 0 24 24" fill="none" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card-advice">Plateau freiné à la descente. Focus sur le vaste externe pour encaisser les chocs.</div>
                 </div>
             </div>
 
-            <div class="card" onclick="this.classList.toggle('done')">
+            <div class="card" id="card-ext">
                 <div class="card-header"><span class="card-number">02</span><span class="card-tag">Zone Douloureuse</span></div>
                 <div class="anim-box">
                     <svg width="200" height="120" viewBox="0 0 200 120">
@@ -220,8 +257,306 @@
                         <g class="anim-ext">
                             <line x1="150" y1="70" x2="130" y2="120" class="bone" />
                             <rect x="115" y="110" width="15" height="20" class="machine-pad" />
-                            <circle cx="150" cy="70" r="6" class="joint" /> </g>
+                            <circle cx="150" cy="70" r="6" class="joint" />
+                        </g>
                     </svg>
                     <div class="anim-label">DESCENTE 3S</div>
                 </div>
-                <div class
+                <div class="card-body">
+                    <h2 class="card-title bebas">Leg Extension</h2>
+                    <div class="card-muscles">Quadriceps Isolement</div>
+                    <div class="pills"><span class="pill">3x12</span><span class="pill rest">Repos: 60s</span></div>
+                    
+                    <div class="tracker-area">
+                        <div class="weight-input-group">
+                            <label>Charge (kg)</label>
+                            <input type="number" id="w-ext" class="weight-in" placeholder="0">
+                        </div>
+                        <div class="sets-group">
+                            <label>Séries</label>
+                            <div class="set-boxes">
+                                <div class="set-box" id="s-ext-1"><svg viewBox="0 0 24 24" fill="none" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg></div>
+                                <div class="set-box" id="s-ext-2"><svg viewBox="0 0 24 24" fill="none" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg></div>
+                                <div class="set-box" id="s-ext-3"><svg viewBox="0 0 24 24" fill="none" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card-advice">Renforce exactement la zone de tendinite en descente trail. Ne lâche pas le poids !</div>
+                </div>
+            </div>
+
+            <div class="card" id="card-bulgarian">
+                <div class="card-header"><span class="card-number">03</span><span class="card-tag">Stabilité</span></div>
+                <div class="anim-box">
+                    <svg width="200" height="140" viewBox="0 0 200 140">
+                        <rect x="30" y="90" width="30" height="10" class="machine-pad" />
+                        <line x1="45" y1="100" x2="45" y2="140" class="machine" />
+                        <g class="anim-squat">
+                            <line x1="100" y1="20" x2="100" y2="60" class="bone" />
+                            <line x1="100" y1="60" x2="45" y2="80" class="bone" stroke-width="6" opacity="0.5" />
+                            <line x1="100" y1="60" x2="140" y2="60" class="muscle-active" />
+                            <line x1="100" y1="60" x2="140" y2="60" class="bone" />
+                            <line x1="140" y1="60" x2="140" y2="110" class="bone" />
+                            <circle cx="100" cy="60" r="6" class="joint" />
+                            <circle cx="140" cy="60" r="6" class="joint" />
+                            <circle cx="140" cy="110" r="5" class="joint" />
+                        </g>
+                        <line x1="10" y1="130" x2="190" y2="130" stroke="#333" stroke-width="2" />
+                    </svg>
+                    <div class="anim-label">DESCENTE 3S</div>
+                </div>
+                <div class="card-body">
+                    <h2 class="card-title bebas">Bulgarian Squat</h2>
+                    <div class="card-muscles">Quads, Fessiers</div>
+                    <div class="pills"><span class="pill">3x10 / jambe</span><span class="pill rest">Repos: 60s</span></div>
+                    
+                    <div class="tracker-area">
+                        <div class="weight-input-group">
+                            <label>Haltères (kg)</label>
+                            <input type="number" id="w-bulg" class="weight-in" placeholder="0">
+                        </div>
+                        <div class="sets-group">
+                            <label>Séries</label>
+                            <div class="set-boxes">
+                                <div class="set-box" id="s-bulg-1"><svg viewBox="0 0 24 24" fill="none" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg></div>
+                                <div class="set-box" id="s-bulg-2"><svg viewBox="0 0 24 24" fill="none" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg></div>
+                                <div class="set-box" id="s-bulg-3"><svg viewBox="0 0 24 24" fill="none" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card-advice">Buste droit. Genou avant fixe. Laisse la gravité te tirer lentement vers le bas.</div>
+                </div>
+            </div>
+
+            <div class="card" id="card-lunge">
+                <div class="card-header"><span class="card-number">04</span><span class="card-tag">Amplitude</span></div>
+                <div class="anim-box">
+                    <svg width="200" height="140" viewBox="0 0 200 140">
+                        <g class="anim-lunge">
+                            <line x1="100" y1="20" x2="100" y2="60" class="bone" />
+                            <line x1="100" y1="60" x2="60" y2="100" class="bone" opacity="0.5" />
+                            <line x1="60" y1="100" x2="40" y2="100" class="bone" opacity="0.5" />
+                            <line x1="100" y1="60" x2="150" y2="60" class="muscle-active" />
+                            <line x1="100" y1="60" x2="150" y2="60" class="bone" />
+                            <line x1="150" y1="60" x2="150" y2="110" class="bone" />
+                            <circle cx="100" cy="60" r="6" class="joint" />
+                            <circle cx="150" cy="60" r="6" class="joint" />
+                            <circle cx="60" cy="100" r="5" class="joint" opacity="0.5" />
+                        </g>
+                        <line x1="10" y1="130" x2="190" y2="130" stroke="#333" stroke-width="2" />
+                        <circle cx="60" cy="125" r="4" fill="var(--primary)" />
+                    </svg>
+                    <div class="anim-label">JUSQU'AU SOL</div>
+                </div>
+                <div class="card-body">
+                    <h2 class="card-title bebas">Fentes Marchées</h2>
+                    <div class="card-muscles">Quads, Ischios</div>
+                    <div class="pills"><span class="pill">3x12 / jambe</span><span class="pill rest">Repos: 60s</span></div>
+                    
+                    <div class="tracker-area">
+                        <div class="weight-input-group">
+                            <label>Haltères (kg)</label>
+                            <input type="number" id="w-lunge" class="weight-in" placeholder="0">
+                        </div>
+                        <div class="sets-group">
+                            <label>Séries</label>
+                            <div class="set-boxes">
+                                <div class="set-box" id="s-lunge-1"><svg viewBox="0 0 24 24" fill="none" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg></div>
+                                <div class="set-box" id="s-lunge-2"><svg viewBox="0 0 24 24" fill="none" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg></div>
+                                <div class="set-box" id="s-lunge-3"><svg viewBox="0 0 24 24" fill="none" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card-advice">Pas normaux (pas trop longs). Le genou arrière doit s'arrêter à 3cm du sol.</div>
+                </div>
+            </div>
+
+            <div class="card" id="card-step">
+                <div class="card-header"><span class="card-number">05</span><span class="card-tag">Spécifique LUT</span></div>
+                <div class="anim-box">
+                    <svg width="200" height="140" viewBox="0 0 200 140">
+                        <rect x="110" y="80" width="60" height="60" class="machine-pad" />
+                        <g class="anim-step">
+                            <line x1="130" y1="10" x2="130" y2="50" class="bone" />
+                            <line x1="130" y1="50" x2="140" y2="75" class="muscle-active" />
+                            <line x1="130" y1="50" x2="140" y2="75" class="bone" />
+                            <line x1="140" y1="75" x2="140" y2="80" class="bone" />
+                            <line x1="130" y1="50" x2="90" y2="90" class="bone" opacity="0.5" />
+                            <line x1="90" y1="90" x2="90" y2="130" class="bone" opacity="0.5" />
+                            <circle cx="130" cy="50" r="6" class="joint" />
+                            <circle cx="140" cy="75" r="5" class="joint" />
+                        </g>
+                    </svg>
+                    <div class="anim-label">RETENIR 3S</div>
+                </div>
+                <div class="card-body">
+                    <h2 class="card-title bebas">Step-Up Haltères</h2>
+                    <div class="card-muscles">Quads, Fessiers</div>
+                    <div class="pills"><span class="pill">3x12 / jambe</span><span class="pill rest">Repos: 60s</span></div>
+                    
+                    <div class="tracker-area">
+                        <div class="weight-input-group">
+                            <label>Haltères (kg)</label>
+                            <input type="number" id="w-step" class="weight-in" placeholder="0">
+                        </div>
+                        <div class="sets-group">
+                            <label>Séries</label>
+                            <div class="set-boxes">
+                                <div class="set-box" id="s-step-1"><svg viewBox="0 0 24 24" fill="none" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg></div>
+                                <div class="set-box" id="s-step-2"><svg viewBox="0 0 24 24" fill="none" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg></div>
+                                <div class="set-box" id="s-step-3"><svg viewBox="0 0 24 24" fill="none" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card-advice">Spécifique escaliers Fourvière. La jambe sur la box retient tout le poids à la descente.</div>
+                </div>
+            </div>
+
+            <div class="card" id="card-curl">
+                <div class="card-header"><span class="card-number">06</span><span class="card-tag">Antagonistes</span></div>
+                <div class="anim-box">
+                    <svg width="200" height="120" viewBox="0 0 200 120">
+                        <line x1="40" y1="80" x2="160" y2="80" class="machine" />
+                        <line x1="50" y1="70" x2="100" y2="70" class="bone" />
+                        <line x1="100" y1="70" x2="160" y2="70" class="muscle-active" />
+                        <line x1="100" y1="70" x2="160" y2="70" class="bone" />
+                        <g class="anim-curl">
+                            <line x1="160" y1="70" x2="190" y2="70" class="bone" />
+                            <rect x="175" y="60" width="10" height="20" class="machine-pad" />
+                            <circle cx="160" cy="70" r="6" class="joint" />
+                        </g>
+                    </svg>
+                    <div class="anim-label">RETOUR 3S</div>
+                </div>
+                <div class="card-body">
+                    <h2 class="card-title bebas">Leg Curl allongé</h2>
+                    <div class="card-muscles">Ischio-jambiers</div>
+                    <div class="pills"><span class="pill">3x12</span><span class="pill rest">Repos: 60s</span></div>
+                    
+                    <div class="tracker-area">
+                        <div class="weight-input-group">
+                            <label>Charge (kg)</label>
+                            <input type="number" id="w-curl" class="weight-in" placeholder="0">
+                        </div>
+                        <div class="sets-group">
+                            <label>Séries</label>
+                            <div class="set-boxes">
+                                <div class="set-box" id="s-curl-1"><svg viewBox="0 0 24 24" fill="none" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg></div>
+                                <div class="set-box" id="s-curl-2"><svg viewBox="0 0 24 24" fill="none" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg></div>
+                                <div class="set-box" id="s-curl-3"><svg viewBox="0 0 24 24" fill="none" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card-advice">Indispensable pour équilibrer la tension sur le genou (prévention essuie-glace).</div>
+                </div>
+            </div>
+
+            <div class="card full-width" id="card-calf">
+                <div class="card-header"><span class="card-number">07</span><span class="card-tag">Propulsion</span></div>
+                <div class="anim-box" style="height: 140px;">
+                    <svg width="300" height="140" viewBox="0 0 300 140">
+                        <rect x="100" y="90" width="100" height="50" class="machine-pad" />
+                        <g class="anim-calf">
+                            <line x1="150" y1="10" x2="150" y2="60" class="bone" />
+                            <line x1="150" y1="60" x2="130" y2="100" class="muscle-active" />
+                            <line x1="150" y1="60" x2="130" y2="100" class="bone" />
+                            <line x1="130" y1="100" x2="160" y2="90" class="bone" stroke-width="6" />
+                            <circle cx="150" cy="60" r="6" class="joint" />
+                            <circle cx="130" cy="100" r="5" class="joint" />
+                        </g>
+                    </svg>
+                    <div class="anim-label">PAUSE 1S EN HAUT</div>
+                </div>
+                <div class="card-body">
+                    <h2 class="card-title bebas">Élévations Mollets</h2>
+                    <div class="card-muscles">Gastrocnémiens, Soléaires</div>
+                    <div class="pills"><span class="pill">4x15</span><span class="pill rest">Repos: 45-60s</span></div>
+                    
+                    <div class="tracker-area" style="max-width: 400px;">
+                        <div class="weight-input-group">
+                            <label>Lest (kg)</label>
+                            <input type="number" id="w-calf" class="weight-in" placeholder="0">
+                        </div>
+                        <div class="sets-group">
+                            <label>Séries</label>
+                            <div class="set-boxes">
+                                <div class="set-box" id="s-calf-1"><svg viewBox="0 0 24 24" fill="none" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg></div>
+                                <div class="set-box" id="s-calf-2"><svg viewBox="0 0 24 24" fill="none" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg></div>
+                                <div class="set-box" id="s-calf-3"><svg viewBox="0 0 24 24" fill="none" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg></div>
+                                <div class="set-box" id="s-calf-4"><svg viewBox="0 0 24 24" fill="none" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card-advice">Descends le talon dans le vide (étirement max). Remonte explosivement et <strong>marque une pause stricte de 1 sec en haut</strong>.</div>
+                </div>
+            </div>
+
+        </div>
+
+        <button class="reset-btn" id="reset-btn">NOUVELLE SÉANCE (RESET SÉRIES)</button>
+
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Gérer la sauvegarde des poids
+            const weightInputs = document.querySelectorAll('.weight-in');
+            weightInputs.forEach(input => {
+                const savedValue = localStorage.getItem(input.id);
+                if (savedValue) input.value = savedValue;
+                
+                input.addEventListener('input', (e) => {
+                    localStorage.setItem(input.id, e.target.value);
+                });
+            });
+
+            // Gérer les cases à cocher des séries
+            const setBoxes = document.querySelectorAll('.set-box');
+            setBoxes.forEach(box => {
+                const isChecked = localStorage.getItem(box.id);
+                if (isChecked === 'true') {
+                    box.classList.add('checked');
+                }
+
+                box.addEventListener('click', () => {
+                    box.classList.toggle('checked');
+                    localStorage.setItem(box.id, box.classList.contains('checked'));
+                    checkCardCompletion(box.closest('.card'));
+                });
+            });
+
+            // Fonction pour griser la carte entière si toutes les séries sont faites
+            function checkCardCompletion(card) {
+                if (!card) return;
+                const boxes = card.querySelectorAll('.set-box');
+                const allChecked = Array.from(boxes).every(b => b.classList.contains('checked'));
+                if (allChecked) {
+                    card.classList.add('done');
+                } else {
+                    card.classList.remove('done');
+                }
+            }
+
+            // Vérification initiale au chargement de la page
+            document.querySelectorAll('.card').forEach(card => checkCardCompletion(card));
+
+            // Bouton Reset pour remettre à zéro avant la nouvelle séance
+            document.getElementById('reset-btn').addEventListener('click', () => {
+                if(confirm('Remettre à zéro toutes les séries validées ? (Vos poids resteront sauvegardés)')) {
+                    setBoxes.forEach(box => {
+                        box.classList.remove('checked');
+                        localStorage.setItem(box.id, 'false');
+                    });
+                    document.querySelectorAll('.card').forEach(card => checkCardCompletion(card));
+                }
+            });
+        });
+    </script>
+</body>
+</html>
